@@ -31,6 +31,13 @@
             演练方案
           </RouterLink>
           <RouterLink
+            to="/drill-executions"
+            class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            :class="{ 'text-blue-600 bg-blue-50': $route.path === '/drill-executions' }"
+          >
+            演练实施
+          </RouterLink>
+          <RouterLink
             to="/test-connection"
             class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             :class="{ 'text-blue-600 bg-blue-50': $route.path === '/test-connection' }"

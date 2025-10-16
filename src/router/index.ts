@@ -35,6 +35,14 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/drill-executions',
+    name: 'DrillExecutions',
+    component: () => import('@/views/DrillExecutionView.vue'),
+    meta: {
+      title: '演练实施管理'
+    }
+  },
+  {
     path: '/test-connection',
     name: 'TestConnection',
     component: () => import('@/views/TestConnectionView.vue'),

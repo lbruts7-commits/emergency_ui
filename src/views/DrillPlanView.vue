@@ -44,13 +44,22 @@
             </select>
           </div>
           <div>
+            <label class="label">计划参演部门</label>
+            <select v-model="searchForm.participantDepts" multiple class="input" style="min-height: 38px;">
+              <option v-for="dept in departments" :key="dept.id" :value="dept.name">
+                {{ dept.name }}
+              </option>
+            </select>
+            <span class="text-xs text-gray-500 mt-1">按住Ctrl可多选</span>
+          </div>
+          <div>
             <label class="label">组织部门/科室</label>
-            <input
-              v-model="searchForm.organizerDept"
-              type="text"
-              class="input"
-              placeholder="请输入组织部门/科室"
-            />
+            <select v-model="searchForm.organizerDept" class="input">
+              <option value="">全部</option>
+              <option v-for="office in offices" :key="office.id" :value="office.name">
+                {{ office.name }}
+              </option>
+            </select>
           </div>
           <div>
             <label class="label">计划演练时间</label>
@@ -296,6 +305,7 @@ import DrillPlanDetailModal from '@/components/DrillPlanDetailModal.vue'
 import DrillPlanAuditModal from '@/components/DrillPlanAuditModal.vue'
 import { useDrillPlanStore } from '@/stores/drillPlan'
 import { showMessage } from '@/utils/message'
+import request from '@/utils/request'
 
 const drillPlanStore = useDrillPlanStore()
 
@@ -307,11 +317,15 @@ const editData = ref(null)
 const detailData = ref(null)
 const auditData = ref(null)
 
+// 下拉选项数据
+const departments = ref([])
+const offices = ref([])
+
 // 查询表单
 const searchForm = ref({
   subject: '',
   type: '',
-  participantDept: '',
+  participantDepts: [], // 多选
   organizerDept: '',
   planTime: '',
   creator: ''
@@ -337,16 +351,40 @@ const visiblePages = computed(() => {
   return pages
 })
 
+// 加载部门和科室数据
+const loadDepartments = async () => {
+  try {
+    const response = await request.get('/departments')
+    departments.value = response.data || []
+  } catch (error) {
+    console.error('加载部门数据失败:', error)
+  }
+}
+
+const loadOffices = async () => {
+  try {
+    const response = await request.get('/offices')
+    offices.value = response.data || []
+  } catch (error) {
+    console.error('加载科室数据失败:', error)
+  }
+}
+
 // 方法
 const loadPlans = async () => {
   try {
-    const params = {
+    const params: any = {
       drillSubject: searchForm.value.subject,
       drillType: searchForm.value.type,
       organizationDepartment: searchForm.value.organizerDept,
       plannerName: searchForm.value.creator,
       page: currentPage.value - 1, // 后端页码从0开始
       size: pageSize.value
+    }
+    
+    // 如果选择了参演部门，添加到查询参数
+    if (searchForm.value.participantDepts && searchForm.value.participantDepts.length > 0) {
+      params.participatingDepartments = searchForm.value.participantDepts.join(',')
     }
     
     console.log('查询参数:', params)
@@ -379,7 +417,7 @@ const resetSearch = () => {
   searchForm.value = {
     subject: '',
     type: '',
-    participantDept: '',
+    participantDepts: [],
     organizerDept: '',
     planTime: '',
     creator: ''
@@ -467,28 +505,68 @@ const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('zh-CN')
 }
 
-const getStatusClass = (status: string) => {
-  const classes = {
-    draft: 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800',
-    pending: 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800',
-    approved: 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800',
-    rejected: 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800'
+const formatDateTime = (date: string) => {
+  if (!date) return '-'
+  const d = new Date(date)
+  return d.toLocaleString('zh-CN', { 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).replace(/\//g, '-')
+}
+
+const getDrillTypeName = (type: string) => {
+  const typeMap: Record<string, string> = {
+    'FIRE_DRILL': '消防演练',
+    'EARTHQUAKE_DRILL': '地震演练',
+    'FLOOD_DRILL': '防洪演练',
+    'MEDICAL_DRILL': '医疗救援演练',
+    'EVACUATION_DRILL': '疏散演练',
+    'NUCLEAR_DRILL': '核事故演练',
+    'CHEMICAL_DRILL': '化学事故演练'
   }
-  return classes[status] || classes.draft
+  return typeMap[type] || type
+}
+
+const getStatusClass = (status: string) => {
+  const statusLower = status?.toLowerCase() || ''
+  const classes: Record<string, string> = {
+    'draft': 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800',
+    'submitted': 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800',
+    'approved': 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800',
+    'rejected': 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800'
+  }
+  return classes[statusLower] || classes['draft']
 }
 
 const getStatusText = (status: string) => {
-  const texts = {
-    draft: '草稿',
-    pending: '待审核',
-    approved: '已通过',
-    rejected: '已驳回'
+  const statusLower = status?.toLowerCase() || ''
+  const texts: Record<string, string> = {
+    'draft': '草稿',
+    'submitted': '待审核',
+    'approved': '已通过',
+    'rejected': '已驳回'
   }
-  return texts[status] || '未知'
+  return texts[statusLower] || '未知'
+}
+
+const getStatusDotClass = (status: string) => {
+  const statusLower = status?.toLowerCase() || ''
+  const classes: Record<string, string> = {
+    'draft': 'h-2 w-2 bg-gray-400 rounded-full',
+    'submitted': 'h-2 w-2 bg-yellow-400 rounded-full',
+    'approved': 'h-2 w-2 bg-green-400 rounded-full',
+    'rejected': 'h-2 w-2 bg-red-400 rounded-full'
+  }
+  return classes[statusLower] || classes['draft']
 }
 
 // 生命周期
 onMounted(() => {
+  loadDepartments()
+  loadOffices()
   loadPlans()
 })
 </script>
