@@ -196,6 +196,13 @@
                     审核
                   </button>
                   <button
+                    v-if="item.status === 'APPROVED'"
+                    @click="startExecution(item)"
+                    class="text-purple-600 hover:text-purple-900 mr-3"
+                  >
+                    开始实施
+                  </button>
+                  <button
                     v-if="item.status === 'REJECTED'"
                     @click="deletePlan(item.id)"
                     class="text-red-600 hover:text-red-900"
@@ -295,6 +302,15 @@
       @close="showAuditModal = false"
       @success="handleAuditSuccess"
     />
+
+    <!-- 开始实施弹窗 -->
+    <StartExecutionModal
+      v-if="showStartExecutionModal"
+      :visible="showStartExecutionModal"
+      :plan-data="selectedPlan"
+      @close="showStartExecutionModal = false"
+      @success="handleExecutionSuccess"
+    />
   </div>
 </template>
 
@@ -303,6 +319,7 @@ import { ref, onMounted, computed } from 'vue'
 import DrillPlanModal from '@/components/DrillPlanModal.vue'
 import DrillPlanDetailModal from '@/components/DrillPlanDetailModal.vue'
 import DrillPlanAuditModal from '@/components/DrillPlanAuditModal.vue'
+import StartExecutionModal from '@/components/StartExecutionModal.vue'
 import { useDrillPlanStore } from '@/stores/drillPlan'
 import { showMessage } from '@/utils/message'
 import request from '@/utils/request'
@@ -313,9 +330,11 @@ const drillPlanStore = useDrillPlanStore()
 const showAddModal = ref(false)
 const showDetailModal = ref(false)
 const showAuditModal = ref(false)
+const showStartExecutionModal = ref(false)
 const editData = ref(null)
 const detailData = ref(null)
 const auditData = ref(null)
+const selectedPlan = ref(null)
 
 // 下拉选项数据
 const departments = ref([])
@@ -448,6 +467,17 @@ const editPlan = (item: any) => {
 const showAuditModalHandler = (item: any) => {
   auditData.value = item
   showAuditModal.value = true
+}
+
+const startExecution = (item: any) => {
+  selectedPlan.value = item
+  showStartExecutionModal.value = true
+}
+
+const handleExecutionSuccess = () => {
+  showStartExecutionModal.value = false
+  selectedPlan.value = null
+  // 成功后会自动跳转到演练实施页面
 }
 
 const deletePlan = async (id: string) => {
