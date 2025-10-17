@@ -43,6 +43,30 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/drill-evaluations',
+    name: 'DrillEvaluations',
+    component: () => import('@/views/DrillEvaluationView.vue'),
+    meta: {
+      title: '演练评估管理'
+    }
+  },
+  {
+    path: '/drill-archives',
+    name: 'DrillArchives',
+    component: () => import('@/views/DrillArchiveView.vue'),
+    meta: {
+      title: '演练档案管理'
+    }
+  },
+  {
+    path: '/improvement-tasks',
+    name: 'ImprovementTasks',
+    component: () => import('@/views/ImprovementTaskView.vue'),
+    meta: {
+      title: '评估改进管理'
+    }
+  },
+  {
     path: '/test-connection',
     name: 'TestConnection',
     component: () => import('@/views/TestConnectionView.vue'),
