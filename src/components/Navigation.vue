@@ -59,6 +59,13 @@
             评估改进
           </RouterLink>
           <RouterLink
+            to="/statistics"
+            class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            :class="{ 'text-blue-600 bg-blue-50': $route.path === '/statistics' }"
+          >
+            统计分析
+          </RouterLink>
+          <RouterLink
             to="/test-connection"
             class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             :class="{ 'text-blue-600 bg-blue-50': $route.path === '/test-connection' }"

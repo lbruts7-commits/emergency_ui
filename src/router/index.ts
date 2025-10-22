@@ -67,6 +67,14 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/statistics',
+    name: 'Statistics',
+    component: () => import('@/views/StatisticsView.vue'),
+    meta: {
+      title: '统计分析'
+    }
+  },
+  {
     path: '/test-connection',
     name: 'TestConnection',
     component: () => import('@/views/TestConnectionView.vue'),
